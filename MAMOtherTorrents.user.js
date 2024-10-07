@@ -22,7 +22,7 @@
 		(a) => a.textContent.trim(),
 	)
 
-	const response = await fetch('/tor/js/loadSearchJSONbasic.php', {
+	const response = await fetch('https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php', {
 		method: 'post',
 		headers: { 'content-type': 'application/json' },
 		body: JSON.stringify({
