@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MaM Other Torrents
 // @namespace    http://tampermonkey.net/
-// @version      0.1.1
+// @version      0.1.2
 // @description  Adds an "Other Torrents" panel to the MaM torrent page, showing other torrents with the same title from the authors
 // @author       Stirling Mouse
 // @match        https://www.myanonamouse.net/t/*
@@ -22,7 +22,7 @@
 		(a) => a.textContent.trim(),
 	)
 
-	const response = await fetch('/tor/js/loadSearchJSONbasic.php', {
+	const response = await fetch('https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php', {
 		method: 'post',
 		headers: { 'content-type': 'application/json' },
 		body: JSON.stringify({
