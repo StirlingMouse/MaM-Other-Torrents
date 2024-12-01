@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MaM Other Torrents
 // @namespace    http://tampermonkey.net/
-// @version      0.1.2
+// @version      0.1.3
 // @description  Adds an "Other Torrents" panel to the MaM torrent page, showing other torrents with the same title from the authors
 // @author       Stirling Mouse
 // @match        https://www.myanonamouse.net/t/*
@@ -12,6 +12,11 @@
 // ==/UserScript==
 
 ;(async () => {
+	const $unsafeWindow =
+		typeof unsafeWindow !== 'undefined'
+			? (unsafeWindow.wrappedJSObject ?? unsafeWindow)
+			: window
+
 	const currentId = +location.pathname.replace(/\/t\/(\d+)/, '$1')
 	if (isNaN(currentId)) return
 	const detailPage = document.querySelector('#torDetMainCon')
@@ -22,19 +27,22 @@
 		(a) => a.textContent.trim(),
 	)
 
-	const response = await fetch('https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php', {
-		method: 'post',
-		headers: { 'content-type': 'application/json' },
-		body: JSON.stringify({
-			tor: {
-				text: `${title} (${authors.map((a) => `"${a}"`).join(' | ')})`,
-				srchIn: {
-					title: 'true',
-					author: 'true',
+	const response = await fetch(
+		'https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php',
+		{
+			method: 'post',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({
+				tor: {
+					text: `${title} (${authors.map((a) => `"${a}"`).join(' | ')})`,
+					srchIn: {
+						title: 'true',
+						author: 'true',
+					},
 				},
-			},
-		}),
-	})
+			}),
+		},
+	)
 	const body = await response.json()
 	console.log('MaM Other Torrents response', body)
 	if (!body.data) return
@@ -197,14 +205,13 @@
 			.querySelector(`#torDeBookmark${t.id}`)
 			?.addEventListener('click', (e) => {
 				e.preventDefault()
-				delBookmarkConfirm(t.id)
+				$unsafeWindow.delBookmarkConfirm(t.id)
 			})
 		links
 			.querySelector(`#torBookmark${t.id}`)
 			?.addEventListener('click', (e) => {
-				console.log('click')
 				e.preventDefault()
-				bookmarkClick('add', t.id)
+				$unsafeWindow.bookmarkClick('add', t.id)
 			})
 
 		numfiles.href = `/t/${t.id}&filelist#filelistLink`
