@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MaM Other Torrents
 // @namespace    http://tampermonkey.net/
-// @version      0.1.3
+// @version      0.1.4
 // @description  Adds an "Other Torrents" panel to the MaM torrent page, showing other torrents with the same title from the authors
 // @author       Stirling Mouse
 // @match        https://www.myanonamouse.net/t/*
@@ -22,7 +22,10 @@
 	const detailPage = document.querySelector('#torDetMainCon')
 	if (!detailPage) return
 	const description = detailPage.querySelector('.torDetBottom')
-	const title = detailPage.querySelector('.TorrentTitle')?.textContent.trim()
+	const title = detailPage
+		.querySelector('.TorrentTitle')
+		?.textContent.replace('*', '"*"')
+		.trim()
 	const authors = Array.from(detailPage.querySelectorAll('.torAuthors a')).map(
 		(a) => a.textContent.trim(),
 	)
