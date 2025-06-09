@@ -126,6 +126,7 @@
 					', Autistic Spectrum Disorder',
 					', Autistic Spectrum Disorder, ASD',
 				)
+				.replace(', M M Romance', 'MM')
 		})
 		const br = tags.querySelector('br')
 		br.parentElement.insertBefore(a, br)
