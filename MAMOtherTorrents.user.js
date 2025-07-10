@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MaM Other Torrents
 // @namespace    http://tampermonkey.net/
-// @version      0.1.5
+// @version      0.1.6
 // @description  Adds an "Other Torrents" panel to the MaM torrent page, showing other torrents with the same title from the authors
 // @author       Stirling Mouse
 // @match        https://www.myanonamouse.net/t/*
@@ -201,7 +201,9 @@
 			for (const [id, [name, num]] of Object.entries(seriesInfo)) {
 				if (clone) series = cloneAndInsert(series)
 				clone = true
-				series.textContent = `${decodeHtml(name)} (#${num})`
+				series.textContent = num
+					? `${decodeHtml(name)} (#${num})`
+					: `${decodeHtml(name)}`
 				series.href = `/tor/browse.php?series=${id}&amp;tor%5Bcat%5D%5B%5D=0`
 			}
 		} else {
