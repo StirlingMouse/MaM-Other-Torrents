@@ -29,15 +29,16 @@
 	const authors = Array.from(detailPage.querySelectorAll('.torAuthors a')).map(
 		(a) => a.textContent.trim(),
 	)
+	const authorsQuery = authors.map((a) => `"${a}"`).join(' | ')
 
-	const response = await fetch(
+	let response = await fetch(
 		'https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php',
 		{
 			method: 'post',
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({
 				tor: {
-					text: `${title} (${authors.map((a) => `"${a}"`).join(' | ')})`,
+					text: `${title} (${authorsQuery})`,
 					srchIn: {
 						title: 'true',
 						author: 'true',
@@ -46,9 +47,32 @@
 			}),
 		},
 	)
-	const body = await response.json()
+	let body = await response.json()
 	console.log('MaM Other Torrents response', body)
-	if (!body.data) return
+	if (!body.data || body.data.length < 2) {
+		const shortTitle = title.replace(/:.*/, '')
+		if (shortTitle !== title) {
+			response = await fetch(
+				'https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php',
+				{
+					method: 'post',
+					headers: { 'content-type': 'application/json' },
+					body: JSON.stringify({
+						tor: {
+							text: `${shortTitle} (${authorsQuery})`,
+							srchIn: {
+								title: 'true',
+								author: 'true',
+							},
+						},
+					}),
+				},
+			)
+			body = await response.json()
+			console.log('MaM Other Torrents response', body)
+		}
+		if (!body.data) return
+	}
 
 	const styles = document.createElement('style')
 	styles.innerHTML = `
