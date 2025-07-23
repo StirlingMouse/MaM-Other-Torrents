@@ -172,39 +172,49 @@
 
 		title.textContent = t.title
 		title.href = `/t/${t.id}`
-		{
+		try {
 			const authorInfo = JSON.parse(t.author_info)
 			let clone = false
 			for (const [id, name] of Object.entries(authorInfo)) {
 				if (clone) author = cloneAndInsert(author)
 				clone = true
-				author.textContent = name
+				author.textContent = decodeHtml(name)
 				author.href = `/tor/browse.php?author=${id}&amp;tor%5Bcat%5D%5B%5D=0`
 			}
+		} catch (e) {
+			console.warn('[other torrents] authors failed', e, t.author_info)
 		}
 		if (t.narrator_info) {
-			const narratorInfo = JSON.parse(t.narrator_info)
-			let clone = false
-			for (const [id, name] of Object.entries(narratorInfo)) {
-				if (clone) narrator = cloneAndInsert(narrator)
-				clone = true
-				narrator.textContent = name
-				narrator.href = `/tor/browse.php?narrator=${id}&amp;tor%5Bcat%5D%5B%5D=0`
+			try {
+				const narratorInfo = JSON.parse(t.narrator_info)
+				let clone = false
+				for (const [id, name] of Object.entries(narratorInfo)) {
+					if (clone) narrator = cloneAndInsert(narrator)
+					clone = true
+					narrator.textContent = decodeHtml(name)
+					narrator.href = `/tor/browse.php?narrator=${id}&amp;tor%5Bcat%5D%5B%5D=0`
+				}
+			} catch (e) {
+				console.warn('[other torrents] narrators failed', e, t.narrator_info)
 			}
 		} else {
 			row.querySelector('.torNarrator').nextSibling.remove()
 			row.querySelector('.torNarrator').remove()
 		}
 		if (t.series_info) {
-			const seriesInfo = JSON.parse(t.series_info)
-			let clone = false
-			for (const [id, [name, num]] of Object.entries(seriesInfo)) {
-				if (clone) series = cloneAndInsert(series)
-				clone = true
-				series.textContent = num
-					? `${decodeHtml(name)} (#${num})`
-					: `${decodeHtml(name)}`
-				series.href = `/tor/browse.php?series=${id}&amp;tor%5Bcat%5D%5B%5D=0`
+			try {
+				const seriesInfo = JSON.parse(t.series_info)
+				let clone = false
+				for (const [id, [name, num]] of Object.entries(seriesInfo)) {
+					if (clone) series = cloneAndInsert(series)
+					clone = true
+					series.textContent = num
+						? `${decodeHtml(name)} (#${num})`
+						: `${decodeHtml(name)}`
+					series.href = `/tor/browse.php?series=${id}&amp;tor%5Bcat%5D%5B%5D=0`
+				}
+			} catch (e) {
+				console.warn('[other torrents] series failed', e, t.series_info)
 			}
 		} else {
 			if (t.narrator_info) {
