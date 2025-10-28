@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MaM Other Torrents
 // @namespace    http://tampermonkey.net/
-// @version      0.1.8
+// @version      0.2.0
 // @description  Adds an "Other Torrents" panel to the MaM torrent page, showing other torrents with the same title from the authors
 // @author       Stirling Mouse
 // @match        https://www.myanonamouse.net/t/*
@@ -147,8 +147,15 @@
 				'<img src="https://cdn.myanonamouse.net/pic/freedownload.gif" alt="">'
 		}
 		if (t.vip) {
-			tags.innerHTML +=
-				'<img src="https://cdn.myanonamouse.net/pic/vip.png" alt="VIP" title="VIP">'
+			if (t.vip_expire) {
+				const date = new Date(t.vip_expire * 1000)
+				const expire_date = date.toISOString().slice(0, 10)
+				const days = Math.floor((date - new Date()) / 1000 / 60 / 60 / 24)
+				tags.innerHTML += `<img src="https://cdn.myanonamouse.net/pic/vip_temp.png" alt="VIP expires ${expire_date} (in ${days} days)" title="VIP expires ${expire_date} (in ${days} days)">`
+			} else {
+				tags.innerHTML +=
+					'<img src="https://cdn.myanonamouse.net/pic/vip.png" alt="VIP" title="VIP">'
+			}
 		}
 		if (t.browseflags & (1 << 1)) {
 			tags.innerHTML +=
