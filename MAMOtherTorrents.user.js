@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MaM Other Torrents
 // @namespace    http://tampermonkey.net/
-// @version      0.2.0
+// @version      0.3.0
 // @description  Adds an "Other Torrents" panel to the MaM torrent page, showing other torrents with the same title from the authors
 // @author       Stirling Mouse
 // @match        https://www.myanonamouse.net/t/*
@@ -35,12 +35,39 @@
 	)
 	const authorsQuery = authors.map((a) => `"${a}"`).join(' | ')
 
+	let categoryData
+	try {
+		categoryData = JSON.parse(
+			localStorage.getItem('otherTorrents::categoryData'),
+		)
+	} catch {}
+	async function fetchCategoryData() {
+		const response = await fetch(
+			'https://www.myanonamouse.net/tor/json/categories.php?new',
+		)
+		const json = await response.json()
+		categoryData = {
+			categories: Object.fromEntries(
+				Object.values(json.categories).map((c) => [c.id, c.name]),
+			),
+			media_types: Object.fromEntries(
+				Object.values(json.media_types).map((c) => [c.id, c.name]),
+			),
+		}
+		localStorage.setItem(
+			'otherTorrents::categoryData',
+			JSON.stringify(categoryData),
+		)
+	}
+	if (!categoryData) await fetchCategoryData()
+
 	let response = await fetch(
 		'https://www.myanonamouse.net/tor/js/loadSearchJSONbasic.php',
 		{
 			method: 'post',
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({
+				thumbnail: true,
 				tor: {
 					text: `${title} (${authorsQuery})`,
 					srchIn: {
@@ -62,6 +89,7 @@
 					method: 'post',
 					headers: { 'content-type': 'application/json' },
 					body: JSON.stringify({
+						thumbnail: true,
 						tor: {
 							text: `${shortTitle} (${authorsQuery})`,
 							srchIn: {
@@ -108,7 +136,7 @@
 
 		const row = document.createElement('tr')
 		row.dataset.torrentId = t.id
-		row.innerHTML = `<td>${t.cat}</td><td></td><td class="expand"><div class="posterImage"><img></div><a class="torTitle"></a> by <a class="author"></a><br><span class="torNarrator">Narrated by: <a class="narrator"></a></span> | <span class="series_info"><span class="torSeries"> Series: <a class="series" href=""></a></span></span><br></span><span class="torRowDesc"></span><br><span class="torFileTypes"><a></a></span> | <span class="comments"></span> comments</td><td></td><td class="shrink"><a></a><br></td><td></td><td><p>0</p><p>0</p><p>0</p></td>`
+		row.innerHTML = `<td>${t.cat}</td><td><div class="posterImage"><img></div></td><td class="expand"><a class="torTitle"></a> by <a class="author"></a><br><span class="torNarrator">Narrated by: <a class="narrator"></a></span> | <span class="series_info"><span class="torSeries"> Series: <a class="series" href=""></a></span></span><br></span><span class="torRowDesc"></span><br><span class="torFileTypes"><a></a></span> | <span class="comments"></span> comments</td><td></td><td class="shrink"><a></a><br></td><td></td><td><p>0</p><p>0</p><p>0</p></td>`
 		const poster = row.querySelector('.posterImage img')
 		const title = row.querySelector('.torTitle')
 		let author = row.querySelector('.author')
@@ -151,10 +179,10 @@
 				const date = new Date(t.vip_expire * 1000)
 				const expire_date = date.toISOString().slice(0, 10)
 				const days = Math.floor((date - new Date()) / 1000 / 60 / 60 / 24)
-				tags.innerHTML += `<img src="https://cdn.myanonamouse.net/pic/vip_temp.png" alt="VIP expires ${expire_date} (in ${days} days)" title="VIP expires ${expire_date} (in ${days} days)">`
+				tags.innerHTML += `<img src="https://cdn.myanonamouse.net/pic/vip_temp.png" alt="VIP expires ${expire_date} (in ${days} days)" title="VIP expires ${expire_date} (in ${days} days)"><br>`
 			} else {
 				tags.innerHTML +=
-					'<img src="https://cdn.myanonamouse.net/pic/vip.png" alt="VIP" title="VIP">'
+					'<img src="https://cdn.myanonamouse.net/pic/vip.png" alt="VIP" title="VIP"><br>'
 			}
 		}
 		if (t.browseflags & (1 << 1)) {
@@ -245,6 +273,32 @@
 			snatched.className = 'browseAct'
 			snatched.innerHTML = 'Previously Downloaded'
 			info.appendChild(snatched)
+		}
+		if (t.categories) {
+			let categories
+			try {
+				categories = JSON.parse(t.categories)
+			} catch {}
+			if (categories) {
+				info.appendChild(document.createElement('br'))
+				const multiCat = document.createElement('div')
+				multiCat.id = 'searchMultiCat'
+				for (const id of categories) {
+					let name = categoryData.categories[id]
+					if (!name) {
+						await fetchCategoryData()
+						name = categoryData.categories[id]
+					}
+					if (name) {
+						const cat = document.createElement('a')
+						cat.className = 'mCat'
+						cat.dataset.mcatid = id
+						cat.textContent = name
+						multiCat.appendChild(cat)
+					}
+				}
+				info.appendChild(multiCat)
+			}
 		}
 
 		if (t.bookmarked) {
