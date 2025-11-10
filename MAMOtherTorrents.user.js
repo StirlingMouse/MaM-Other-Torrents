@@ -17,7 +17,8 @@
 			? (unsafeWindow.wrappedJSObject ?? unsafeWindow)
 			: window
 
-	const currentId = +location.pathname.replace(/\/t\/(\d+)/, '$1')
+	const currentId = +window.location.pathname.match(/\/t\/(\d+)/)[1]
+
 	if (isNaN(currentId)) return
 	const detailPage = document.querySelector('#torDetMainCon')
 	if (!detailPage) return
