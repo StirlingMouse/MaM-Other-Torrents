@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MaM Other Torrents
 // @namespace    http://tampermonkey.net/
-// @version      0.4.0
+// @version      0.4.1
 // @description  Adds an "Other Torrents" panel to the MaM torrent page, showing other torrents with the same title from the authors
 // @author       Stirling Mouse
 // @match        https://www.myanonamouse.net/t/*
@@ -226,45 +226,53 @@
 		} catch (e) {
 			console.warn('[other torrents] authors failed', e, t.author_info)
 		}
-		if (t.narrator_info) {
-			try {
-				const narratorInfo = JSON.parse(t.narrator_info)
-				let clone = false
-				for (const [id, name] of Object.entries(narratorInfo)) {
-					if (clone) narrator = cloneAndInsert(narrator)
-					clone = true
-					narrator.textContent = decodeHtml(name)
-					narrator.href = `/tor/browse.php?narrator=${id}&amp;tor%5Bcat%5D%5B%5D=0`
-				}
-			} catch (e) {
-				console.warn('[other torrents] narrators failed', e, t.narrator_info)
-			}
-		} else {
-			row.querySelector('.torNarrator').nextSibling.remove()
-			row.querySelector('.torNarrator').remove()
-		}
-		if (t.series_info) {
-			try {
-				const seriesInfo = JSON.parse(t.series_info)
-				let clone = false
-				for (const [id, [name, num]] of Object.entries(seriesInfo)) {
-					if (clone) series = cloneAndInsert(series)
-					clone = true
-					series.textContent = num
-						? `${decodeHtml(name)} (#${num})`
-						: `${decodeHtml(name)}`
-					series.href = `/tor/browse.php?series=${id}&amp;tor%5Bcat%5D%5B%5D=0`
-				}
-			} catch (e) {
-				console.warn('[other torrents] series failed', e, t.series_info)
-			}
-		} else {
+		{
+			let hasNarrator = false
 			if (t.narrator_info) {
-				row.querySelector('.torNarrator').nextSibling.remove()
-			} else {
-				row.querySelector('.series_info').nextSibling.remove()
+				try {
+					const narratorInfo = JSON.parse(t.narrator_info)
+					let clone = false
+					for (const [id, name] of Object.entries(narratorInfo)) {
+						hasNarrator = true
+						if (clone) narrator = cloneAndInsert(narrator)
+						clone = true
+						narrator.textContent = decodeHtml(name)
+						narrator.href = `/tor/browse.php?narrator=${id}&amp;tor%5Bcat%5D%5B%5D=0`
+					}
+				} catch (e) {
+					console.warn('[other torrents] narrators failed', e, t.narrator_info)
+				}
 			}
-			row.querySelector('.series_info').remove()
+			if (!hasNarrator) {
+				row.querySelector('.torNarrator').nextSibling.remove()
+				row.querySelector('.torNarrator').remove()
+			}
+			let hasSeries = false
+			if (t.series_info) {
+				try {
+					const seriesInfo = JSON.parse(t.series_info)
+					let clone = false
+					for (const [id, [name, num]] of Object.entries(seriesInfo)) {
+						hasSeries = true
+						if (clone) series = cloneAndInsert(series)
+						clone = true
+						series.textContent = num
+							? `${decodeHtml(name)} (#${num})`
+							: `${decodeHtml(name)}`
+						series.href = `/tor/browse.php?series=${id}&amp;tor%5Bcat%5D%5B%5D=0`
+					}
+				} catch (e) {
+					console.warn('[other torrents] series failed', e, t.series_info)
+				}
+			}
+			if (!hasSeries) {
+				if (hasNarrator) {
+					row.querySelector('.torNarrator').nextSibling.remove()
+				} else {
+					row.querySelector('.series_info').nextSibling.remove()
+				}
+				row.querySelector('.series_info').remove()
+			}
 		}
 		desc.textContent = t.tags
 		fileType.textContent = t.filetype
