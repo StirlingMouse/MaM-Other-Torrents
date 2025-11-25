@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MaM Other Torrents
 // @namespace    http://tampermonkey.net/
-// @version      0.4.1
+// @version      0.4.2
 // @description  Adds an "Other Torrents" panel to the MaM torrent page, showing other torrents with the same title from the authors
 // @author       Stirling Mouse
 // @match        https://www.myanonamouse.net/t/*
@@ -312,7 +312,7 @@
 			try {
 				categories = JSON.parse(t.categories)
 			} catch {}
-			if (categories) {
+			if (categories.length) {
 				info.appendChild(document.createElement('br'))
 				const multiCat = document.createElement('div')
 				multiCat.id = 'searchMultiCat'
