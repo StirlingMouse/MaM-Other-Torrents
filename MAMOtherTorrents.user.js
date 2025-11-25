@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MaM Other Torrents
 // @namespace    http://tampermonkey.net/
-// @version      0.3.1
+// @version      0.4.0
 // @description  Adds an "Other Torrents" panel to the MaM torrent page, showing other torrents with the same title from the authors
 // @author       Stirling Mouse
 // @match        https://www.myanonamouse.net/t/*
@@ -69,6 +69,7 @@
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({
 				thumbnail: true,
+				mediaInfo: true,
 				tor: {
 					text: `${title} (${authorsQuery})`,
 					srchIn: {
@@ -267,6 +268,29 @@
 		}
 		desc.textContent = t.tags
 		fileType.textContent = t.filetype
+		try {
+			const mediaInfo = JSON.parse(t.mediainfo)
+			if (mediaInfo.General) {
+				fileType.parentElement.after(mediaInfo.General.Duration)
+				fileType.parentElement.after(document.createTextNode(' | '))
+			}
+			if (mediaInfo.Audio1) {
+				const bitrate = document.createElement('span')
+				bitrate.append(
+					document.createTextNode(
+						`${mediaInfo.Audio1.BitRate} ${mediaInfo.Audio1.BitRate_Mode}`,
+					),
+				)
+				const format = document.createElement('span')
+				format.append(document.createTextNode(mediaInfo.Audio1.Format))
+				fileType.parentElement.after(bitrate)
+				fileType.parentElement.after(document.createTextNode(' | '))
+				fileType.parentElement.after(format)
+				fileType.parentElement.after(document.createTextNode(' | '))
+			}
+		} catch (e) {
+			console.warn('[other torrents] media info failed', e, t.mediainfo)
+		}
 		comments.textContent = t.comments
 		if (t.my_snatched) {
 			info.appendChild(document.createElement('br'))
@@ -322,7 +346,7 @@
 
 		numfiles.href = `/t/${t.id}&filelist#filelistLink`
 		numfiles.textContent = t.numfiles
-		size.innerHTML += `[${t.size}]`
+		size.append(document.createTextNode(`[${t.size}]`))
 		upload.innerHTML = t.added.replace(' ', '<br>') + '<br>'
 		if (t.owner) {
 			upload.innerHTML += `[<a href="/u/${t.owner}"></a>]`
