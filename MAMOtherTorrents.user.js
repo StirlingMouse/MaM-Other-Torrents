@@ -273,6 +273,17 @@
 				}
 				row.querySelector('.series_info').remove()
 			}
+			if (t.ownership) {
+				try {
+					const [id, name] = JSON.parse(t.ownership)
+					if (id) {
+						t.owner = id
+					}
+					if (name) {
+						t.owner_name = name
+					}
+				} catch {}
+			}
 		}
 		desc.textContent = t.tags
 		fileType.textContent = t.filetype
